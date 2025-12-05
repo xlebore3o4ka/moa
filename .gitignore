@@ -45,6 +45,9 @@ wheels/
 **/target/
 **/*.rs.bk
 Cargo.lock
+vm/MoaVM/.idea
+vm/MoaVM/target
+vm/MoaVM/Cargo.lock
 
 # Logs
 *.log

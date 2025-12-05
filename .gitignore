@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+sdist/
+wheels/
+*.egg
+
+# Rust (for MoaVM)
+**/target/
+**/*.rs.bk
+Cargo.lock
+
+# Logs
+*.log
+
+# PyCharm
+.idea
+*.iml
+*.ipr
+*.iws
+workspace.xml
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.pytest_cache
+.mypy_cache/
+.dmypy.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/

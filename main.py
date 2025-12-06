@@ -1,3 +1,4 @@
+from compiler.Errors import Error
 from compiler.Lexer import Lexer
 from compiler.Parser import Parser
 from compiler.visitors.DebugVisitor import DebugVisitor
@@ -5,13 +6,14 @@ from vm.codegen import Codegen
 
 print("source code --->\n")
 
-print(text := """10 * (2 + 10.0) % -2""")
+print(text := """4 * (10 + (4 - 5)) / 2.5""")
 
 print("\ntokenizing --->\n")
 
 try:
+    Error.DEBUG = True
 
-    lexer = Lexer(text, "test.moa")
+    lexer = Lexer(text, filename:="test.moa")
     tokens = lexer.tokenize()
 
     for token in tokens:
@@ -19,7 +21,7 @@ try:
 
     print("\nparsing --->\n")
 
-    parser = Parser(tokens)
+    parser = Parser(tokens, filename)
     expression = parser.parse()  # TODO: BlockStatement
 
     debug_visitor = DebugVisitor()
@@ -27,8 +29,11 @@ try:
 
     print("\ncompiling --->\n")
 
-    codegen = Codegen()
-    print([*expression.compile().build()])
+    codegen = expression.compile()
+    print('[', ', '.join(map(lambda b: f"0x{b:02x}", list(codegen.build()))), ']')
 
-except Exception as e:
+    print("\ndissassembling --->\n")
+    print(codegen.disassemble())
+
+except Error as e:
     pass

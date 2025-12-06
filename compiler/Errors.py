@@ -2,6 +2,8 @@ from compiler.Token import Token
 
 
 class Error(Exception):
+    DEBUG = True
+
     def __init__(self,
                  type: str,
                  message: str,
@@ -25,14 +27,16 @@ class Error(Exception):
         self.print_error()
 
     def print_error(self):
-        print(f"Error in {repr(self.file + f":{self.line}:{self.col}")} for the reason:")
-        for n, method in enumerate(self.error_stacktrace[::-1]):
-            print(f"  from '{self.from_}.{method}'")
-        print(f"  from '{self.from_}'")
+        print(f"Error in {repr(self.file + (f":{self.line}:{self.col}" if not (self.line == self.col == -1) else ''))} for the reason:")
+        if self.DEBUG:
+            for n, method in enumerate(self.error_stacktrace[::-1]):
+                print(f"  from '{self.from_}.{method}'")
+            print(f"  from '{self.from_}'")
         print(f"  {'':<{len(str(self.line))}} |")
-        print(f"  {self.line} |  {self.lexeme}")
-        print(f"  {'':<{len(str(self.line))}} |  {' ' * self.col}{'^' * self.length}")
-        print(f"  {'':<{len(str(self.line))}} V")
+        if self.lexeme:
+            print(f"  {self.line} |  {self.lexeme}")
+            print(f"  {'':<{len(str(self.line))}} |  {' ' * self.col}{'^' * self.length}")
+            print(f"  {'':<{len(str(self.line))}} V")
         print(f"[{self.type}] {self.message}")
 
 

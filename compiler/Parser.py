@@ -9,10 +9,12 @@ from compiler.TokenType import TokenType
 
 
 class Parser:
-    def __init__(self, tokens: list[Token]) -> None:
+    def __init__(self, tokens: list[Token], file: str) -> None:
         self.tokens = tokens
         self.pos = 0
 
+        if not tokens:
+            raise ParserError("ParserError", "No tokens provided (empty file)", -1, -1, 0, '', file, ["__init__"])
         self.EOF = Token(TokenType.EOF, '', 1, (last_token := self.tokens[-1]).col + last_token.length + 1,
                          last_token.line, last_token.lexeme, last_token.file)
         self.parser_stacktrace = []

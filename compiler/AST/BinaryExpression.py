@@ -1,5 +1,5 @@
 from compiler.AST.Expression import Expression
-from compiler.Errors import CompilerError
+from compiler.Errors import CompilerError, Error
 from compiler.Token import Token
 from compiler.type.Types import Types
 from vm.codegen import Codegen
@@ -21,12 +21,18 @@ class BinaryExpression(Expression):
             if self.expr1.return_type in [Types.Int, Types.Float] and self.expr2.return_type in [Types.Int, Types.Float]:
                 self.return_type = Types.Int if self.expr1.return_type == self.expr2.return_type == Types.Int else Types.Float
 
-                if self.expr1.return_type == Types.Int and self.expr2.return_type == Types.Float:
+                if (self.expr1.return_type == Types.Int and self.expr2.return_type == Types.Float or
+                        self.op == '/' and self.expr1.return_type == Types.Int):
                     expr_codegen1.INT_FLOAT()
-                elif self.expr2.return_type == Types.Int and self.expr1.return_type == Types.Float:
+                if (self.expr2.return_type == Types.Int and self.expr1.return_type == Types.Float or
+                        self.op == '/' and self.expr2.return_type == Types.Int):
                     expr_codegen2.INT_FLOAT()
 
                 codegen.extend(expr_codegen1.extend(expr_codegen2))
+
+                if self.op == '/' and Error.DEBUG:
+                    codegen.ERROR_DATA("ZeroDivisionError", self.token.line, self.token.col, self.token.length,
+                                       self.token.lexeme, self.token.file)
 
                 {
                     '+': [codegen.INT_ADD, codegen.FLOAT_ADD],

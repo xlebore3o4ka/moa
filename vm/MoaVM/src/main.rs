@@ -1,12 +1,34 @@
+use std::fs;
 use crate::moa_vm::VirtualMachine;
 
 mod moa_vm;
 
 fn main() {
-    let bytecode: Vec<u8> = vec![1, 10, 0, 0, 0, 0, 0, 0, 0, 8, 1, 2, 0, 0, 0, 0, 0, 0, 0, 8, 9, 0, 0, 0, 0, 0, 0, 36, 64, 10, 12, 1, 2, 0, 0, 0, 0, 0, 0, 0, 7, 8, 13];
+    use std::env;
+
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        eprintln!("Usage : {} <file.mvm> [-d|--debug]", args[0]);
+        std::process::exit(1);
+    }
+
+    let filename = &args[1];
+    let debug_mode = args.contains(&"-d".to_string()) || args.contains(&"--debug".to_string());
+
+    let bytecode = match fs::read(filename) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            eprintln!("Error reading file {}: {}", filename, e);
+            std::process::exit(1);
+        }
+    };
+
     let mut vm: VirtualMachine = VirtualMachine::new(bytecode);
     vm.run();
 
-    println!("int_stack: {:?}", vm.int_stack);
-    println!("float_stack: {:?}", vm.float_stack);
+    if debug_mode {
+        println!("int_stack   : {:?}", vm.int_stack);
+        println!("float_stack : {:?}", vm.float_stack);
+    }
 }

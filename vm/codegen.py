@@ -25,6 +25,7 @@ class Codegen:
         self.bytecode = bytearray()
         self._opcode_map = Instructions.opcode_map
 
+    @property
     def disassemble(self):
         output = []
 
@@ -48,15 +49,57 @@ class Codegen:
             opcode = self.bytecode[i]
             i += 1
             if opcode == self.opcode(self.INT_PUSH):
-                arguments = self.bytecode[i:i+8]
+                arguments = self.bytecode[address:i + 8]
                 i += 8
-                value = str(int.from_bytes(arguments, 'little', signed=True))
+                value = str(int.from_bytes(arguments[1:], 'little', signed=True))
                 max_value_len = max(max_value_len, len(value))
                 to_disasm_instructions.append(ToDisasmInstruction(address, opcode, value, arguments))
             elif opcode == self.opcode(self.FLOAT_PUSH):
-                arguments = self.bytecode[i:i+8]
+                arguments = self.bytecode[address:i + 8]
                 i += 8
-                value = str(struct.unpack('<d', arguments)[0])
+                value = str(struct.unpack('<d', arguments[1:])[0])
+                max_value_len = max(max_value_len, len(value))
+                to_disasm_instructions.append(ToDisasmInstruction(address, opcode, value, arguments))
+            elif opcode == self.opcode(self.ERROR_DATA):
+                # Читаем длину type
+                type_len = self.bytecode[i]
+                i += 1
+
+                # Читаем type
+                type_str = self.bytecode[i:i + type_len].decode()
+                i += type_len
+
+                # Читаем line (u32)
+                line = int.from_bytes(self.bytecode[i:i + 4], 'little')
+                i += 4
+
+                # Читаем column (u16)
+                column = int.from_bytes(self.bytecode[i:i + 2], 'little')
+                i += 2
+
+                # Читаем length (u16)
+                length = int.from_bytes(self.bytecode[i:i + 2], 'little')
+                i += 2
+
+                # Читаем длину lexeme (u16)
+                lexeme_len = int.from_bytes(self.bytecode[i:i + 2], 'little')
+                i += 2
+
+                # Читаем lexeme
+                lexeme = self.bytecode[i:i + lexeme_len].decode()
+                i += lexeme_len
+
+                # Читаем длину file (u16)
+                file_len = int.from_bytes(self.bytecode[i:i + 2], 'little')
+                i += 2
+
+                # Читаем file
+                file = self.bytecode[i:i + file_len].decode()
+                i += file_len
+
+                # Формируем значение для отображения
+                arguments = self.bytecode[address:i]
+                value = type_str
                 max_value_len = max(max_value_len, len(value))
                 to_disasm_instructions.append(ToDisasmInstruction(address, opcode, value, arguments))
             else:
@@ -79,6 +122,23 @@ class Codegen:
     def _f64(self, v):
         import struct
         self.bytecode.extend(struct.pack('<d', v))
+        return self
+
+    def _u32(self, v):
+        self.bytecode.extend(v.to_bytes(4, 'little', signed=False))
+        return self
+
+    def _u16(self, v):
+        self.bytecode.extend(v.to_bytes(2, 'little', signed=False))
+        return self
+
+    def _u8(self, v):
+        self.bytecode.append(v & 0xFF)
+        return self
+
+    def _utf8(self, s):
+        encoded = s.encode('utf-8')
+        self.bytecode.extend(encoded)
         return self
 
     def opcode(self, instruction) -> int:
@@ -151,6 +211,11 @@ class Codegen:
     @_inst(0x0f)
     def FLOAT_INT(self):
         return self
+
+    @_inst(0x10)
+    def ERROR_DATA(self, type: str, line: int, column: int, length: int, lexeme: str, file: str):
+        return (self._u8(len(type))._utf8(type)._u32(line)._u16(column)._u16(length)
+                ._u16(len(lexeme))._utf8(lexeme)._u16(len(file))._utf8(file))
 
     def build(self):
         return bytes(self.bytecode)

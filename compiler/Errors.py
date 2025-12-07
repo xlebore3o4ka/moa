@@ -2,7 +2,7 @@ from compiler.Token import Token
 
 
 class Error(Exception):
-    DEBUG = True
+    DEBUG = False
 
     def __init__(self,
                  type: str,
